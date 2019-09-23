@@ -1,0 +1,18 @@
+Package: aRlegislation
+Type: Package
+Title: A Dataset of Arkansas Legislation from 2001-2019
+Version: 0.1.0
+Author: Nathan Chaney
+Maintainer: Nathan Chaney <nathan@nathanchaney.com>
+Description: This package provides a dataset of legislation for natural language
+    processing and graph analysis. It returns a tibble containing distinct 
+    legislative sessions, nested by year and session type.
+License: CC BY 4.0
+Encoding: UTF-8
+LazyData: true
+Depends: 
+    R (>= 3.5)
+Imports: 
+    tibble, 
+    tidyr
+RoxygenNote: 6.1.1
