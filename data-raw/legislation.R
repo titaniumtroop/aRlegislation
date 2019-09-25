@@ -1,4 +1,4 @@
-packages <- c("dplyr", "usethis")
+packages <- c("dplyr", "usethis", "stringr", "tidyr")
 #lapply(packages, install.packages)
 lapply(packages, require, character.only = TRUE)
 rm(packages)
@@ -25,6 +25,19 @@ acts.df$munged.txt <- NULL
 
 # Also, the acts dataframe has the raw list of sponsors, and we've already parsed it, so we'll remove it as well
 acts.df$sponsors <- NULL
+
+# Change any non-tidy-compliant column names to tidy-compliant
+names(acts.df) %<>%
+  stringr::str_to_lower(.) %>%
+  stringr::str_replace_all('\\.', '_')
+
+names(sponsorship) %<>%
+  stringr::str_to_lower(.) %>%
+  stringr::str_replace_all('\\.', '_')
+
+names(sponsors.detail) %<>%
+  stringr::str_to_lower(.) %>%
+  stringr::str_replace_all('\\.', '_')
 
 acts.df <- sponsorship %>%
   left_join(sponsors.detail) %>%
