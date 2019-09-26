@@ -20,12 +20,12 @@
 #'   \item{cycle}{year of the legislative cycle}
 #'   \item{session}{session type and number}
 #'   \item{acts}{tibble of act number, title, subtitle, text, and partisanship}
-#'   \item{sponsors}{tibble of demographic information about lawmakers}
+#'   \item{lawmakers}{tibble of demographic information about elected representatives}
 #'   \item{sponsorship}{tibble of act number and sponsor}
 #' }
 #'
 #' @examples
-#'   legislation
+#'   head(legislation$acts[[1]])
 #'
-#' @source \url{http://www.arkleg.state.ar.us/}
+#' @source \url{https://github.com/titaniumtroop/aRlegislation/}
 "legislation"

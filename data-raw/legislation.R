@@ -39,7 +39,9 @@ names(sponsors.detail) %<>%
   stringr::str_to_lower(.) %>%
   stringr::str_replace_all('\\.', '_')
 
+
 acts.df <- sponsorship %>%
+  mutate_if(is.factor, as.character) %>%
   left_join(sponsors.detail) %>%
   mutate(
     party = ifelse(
@@ -80,13 +82,15 @@ legislation <- acts.df %>%
   as_tibble() %>%
   group_by(cycle, session) %>%
   arrange(cycle, session) %>%
+  mutate_if(is.factor, as.character) %>%
   nest(.key = "acts") %>%
   left_join(
     sponsors.detail %>%
       as_tibble() %>%
       group_by(cycle, session) %>%
       arrange(cycle, session) %>%
-      nest(.key = "sponsors"),
+      mutate_if(is.factor, as.character) %>%
+      nest(.key = "lawmakers"),
     by = c("cycle" = "cycle", "session" = "session")
   ) %>%
   left_join(
@@ -94,6 +98,7 @@ legislation <- acts.df %>%
       as_tibble() %>%
       group_by(cycle, session) %>%
       arrange(cycle, session) %>%
+      mutate_if(is.factor, as.character) %>%
       nest(.key = "sponsorship"),
     by = c("cycle" = "cycle", "session" = "session")
   )
@@ -119,7 +124,7 @@ legislation
 ## ----print sponsor table lengths to compare to nested tibbles------------
 
 legislation %>%
-  unnest(sponsors) %>%
+  unnest(lawmakers) %>%
   group_by(cycle, session) %>%
   count() %>%
   ungroup() %>%
@@ -163,4 +168,4 @@ rm(acts.df, sponsors.detail, sponsorship)
 #   compress = "bzip2"
 # )
 
-usethis::use_data(legislation)
+usethis::use_data(legislation, compress = "bzip2", overwrite = TRUE)

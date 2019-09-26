@@ -1,3 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^data-raw$
+\.Rhistory
+cran-comments\.md
+README\.Rmd
+aRlegislation\.Rcheck
