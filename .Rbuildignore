@@ -2,7 +2,8 @@
 ^\.Rproj\.user$
 ^data-raw$
 \.Rhistory
-cran-comments\.md
-README\.Rmd
-aRlegislation\.Rcheck
+^cran-comments\.md$
+^README\.Rmd$
+^aRlegislation\.Rcheck$
 \.travis\.yml
+^revdep$

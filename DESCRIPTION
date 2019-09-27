@@ -7,7 +7,7 @@ Description: A dataset of legislation for natural language primarily for
     processing and graph analysis. Legislative sessions are nested by cycle and 
     session type. Three tibbles are included for each cycle/session: acts
     (legislative text), lawmakers (metadata including political party), and 
-    sponsorships (links the other two tibbles).
+    sponsorship (links the other two tibbles).
 License: CC BY 4.0
 Encoding: UTF-8
 LazyData: true
