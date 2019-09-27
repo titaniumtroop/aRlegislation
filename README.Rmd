@@ -2,7 +2,9 @@
 output: github_document
 ---
 
-# Overview
+# aRlegislation
+
+[![Build Status](https://travis-ci.com/titaniumtroop/aRlegislation.svg?branch=master)](https://travis-ci.com/titaniumtroop/aRlegislation)
 
 This package provides a dataset of Arkansas legislation from 2001-2019 for data exploration, natural language processing, and graph analysis. The dataset is structured as a nested tibble containing distinct legislative sessions, nested by cycle (every two years) and session type. 
 
@@ -29,9 +31,9 @@ head(legislation)
 
 There are three different datasets for each legislative cycle and session:
 
-* acts, which contains act number, bill number, title, subtitle, text, and partisanship
-* lawmakers, which contains demographic information about elected senators and representatives such as chamber, political party, and district
-* sponsorship, which is a simple table containing only act number and sponsor name in a manner suitable for creating network graphs
+* `acts`: contains act number, bill number, title, subtitle, text, and partisanship
+* `lawmakers`: contains demographic information about elected senators and representatives such as chamber, political party, and district
+* `sponsorship`: a simple table containing act number and sponsor name
 
 Below, we'll take a look at each type of nested tibble, and we'll provide an example or two of analyses that can be performed using each type of tibble.
 

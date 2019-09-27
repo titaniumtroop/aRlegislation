@@ -1,5 +1,8 @@
 
-# Overview
+# aRlegislation
+
+[![Build
+Status](https://travis-ci.com/titaniumtroop/aRlegislation.svg?branch=master)](https://travis-ci.com/titaniumtroop/aRlegislation)
 
 This package provides a dataset of Arkansas legislation from 2001-2019
 for data exploration, natural language processing, and graph analysis.
@@ -38,13 +41,11 @@ head(legislation)
 There are three different datasets for each legislative cycle and
 session:
 
-  - acts, which contains act number, bill number, title, subtitle, text,
-    and partisanship
-  - lawmakers, which contains demographic information about elected
-    senators and representatives such as chamber, political party, and
-    district
-  - sponsorship, which is a simple table containing only act number and
-    sponsor name in a manner suitable for creating network graphs
+  - `acts`: contains act number, bill number, title, subtitle, text, and
+    partisanship
+  - `lawmakers`: contains demographic information about elected senators
+    and representatives such as chamber, political party, and district
+  - `sponsorship`: a simple table containing act number and sponsor name
 
 Below, we’ll take a look at each type of nested tibble, and we’ll
 provide an example or two of analyses that can be performed using each
@@ -127,12 +128,12 @@ head(legislation$acts[[1]])
     ## # A tibble: 6 x 6
     ##     act partisan  bill_no title           subtitle          text           
     ##   <dbl> <chr>     <chr>   <chr>           <chr>             <chr>          
-    ## 1     1 committee 1       AN ACT TO MAKE… AN ACT FOR THE A… "\n\nSECTION 1…
-    ## 2     2 D         1001    AN ACT TO MAKE… AN ACT FOR THE A… "\n\nSECTION 1…
-    ## 3     3 bipartis… 1143    AN ACT TO CHAN… AN ACT TO CHANGE… "\n\nSECTION 1…
-    ## 4     4 committee 1156    AN ACT TO MAKE… THE GENERAL APPR… "\n\nSECTION 1…
-    ## 5     5 D         68      AN ACT TO PROV… TO PROVIDE THAT … "\n\nSECTION 1…
-    ## 6     6 committee 1168    AN ACT TO MAKE… AN ACT FOR THE A… "\n\nSECTION 1…
+    ## 1     1 committee 1       AN ACT TO MAKE… AN ACT FOR THE A… "SECTION 1. AP…
+    ## 2     2 D         1001    AN ACT TO MAKE… AN ACT FOR THE A… "SECTION 1. AP…
+    ## 3     3 bipartis… 1143    AN ACT TO CHAN… AN ACT TO CHANGE… "SECTION 1.   …
+    ## 4     4 committee 1156    AN ACT TO MAKE… THE GENERAL APPR… "SECTION 1. AP…
+    ## 5     5 D         68      AN ACT TO PROV… TO PROVIDE THAT … "SECTION 1.   …
+    ## 6     6 committee 1168    AN ACT TO MAKE… AN ACT FOR THE A… "SECTION 1. AP…
 
 The act text has been lightly processed such that it is still
 human-readable, especially in monospace type. A really short act
@@ -144,10 +145,6 @@ SECTION 1. Arkansas Code 14-121-305(b)(2), pertaining to drainage
 improvement districts, is amended to read as follows: (2) No work
 exceeding ten thousand dollars ($10,000) twenty thousand dollars
 ($20,000) shall be let without public advertisement.
-
-APPROVED: 2 9 2001
-
-.
 
 </blockquote>
 

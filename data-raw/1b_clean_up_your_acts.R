@@ -30,10 +30,10 @@ clean_act_text <- function(acts.df) {
   # Remove footer, junk at end of text
   acts.df$munged.txt <- gsub("\\d{1,2}.?\\d{1,2}.?\\d{4} \\d{1,2}:\\d{1,2}:\\d{1,2} \\w{2} \\w{3}\\d{3}", " ", acts.df$munged.txt, ignore.case = TRUE) # remove footer tag
   acts.df$munged.txt <- gsub("\\d{1,2}.?\\d{1,2}.?\\d{4} \\d{1,2}:\\d{1,2}:\\d{1,2} \\w{3}\\d{3}\\s*", " ", acts.df$munged.txt, ignore.case = TRUE) # remove footer tag
-  acts.df$munged.txt <- gsub("\\s*APPROVED: [[:digit:]]{1,2}.?[[:digit:]]{1,2}.?[[:digit:]]{2,4}.+?$", " ", acts.df$munged.txt) # Remove approval stamp at end of text
   acts.df$munged.txt <- gsub("\\w{3}\\d{3}\\s*$", " ", acts.df$munged.txt, perl = TRUE, ignore.case = TRUE) # remove initials and number at end of footer tag not removed in previous step
-  acts.df$munged.txt <- gsub("\\s*APPROVED:[\\s\\d\\.]+$", " ", acts.df$munged.txt, perl = TRUE, ignore.case = TRUE) # remove dates and other digits in footer tag not removed in previous step
   acts.df$munged.txt <- gsub("\\*[[:alpha:]]{3}[[:digit:]]{3}\\*", " ", acts.df$munged.txt, perl = TRUE, ignore.case = TRUE) # remove 1st page footer tag
+  acts.df$munged.txt <- gsub("\\s*APPROVED: [[:digit:]]{1,2}.?[[:digit:]]{1,2}.?[[:digit:]]{2,4}.+?$", " ", acts.df$munged.txt) # Remove approval stamp at end of text
+  acts.df$munged.txt <- gsub("\\s*APPROVED[-\\:\\s\\d\\.]+$", " ", acts.df$munged.txt, perl = TRUE, ignore.case = TRUE) # remove dates and other digits in footer tag not removed in previous step
   #head(substr(acts.df$munged.txt, nchar(acts.df$munged.txt) - 250, nchar(acts.df$munged.txt))) # check to make sure footer removed
 
   # Remove Act number in header
@@ -48,8 +48,7 @@ clean_act_text <- function(acts.df) {
   acts.df$munged.txt <- gsub("\n\\s*\\d{1,2}\\s*\n", "\n", acts.df$munged.txt, perl = TRUE) # Remove blank lines (line or page numbers)
   acts.df$munged.txt <- gsub("\n\\s*\\d{1,2}\\s+(.+?)\n", "\\1\n", acts.df$munged.txt, perl = TRUE) # Remove line numbers
   #acts.df$munged.txt <- gsub("^\n\\s*\\d{1,2}\\s+(.+?)\n", "\\1\n", acts.df$munged.txt, perl = TRUE)
-  acts.df$munged.txt <- gsub("^\\s+|\\s+$", "", acts.df$munged.txt)
-
+  acts.df$munged.txt <- gsub("^(.+?)\\s+$", "\\1", acts.df$munged.txt)
 
   # Title
   acts.df$bill.no <- sub("^.+?[SENATE|HOUSE]{5,6}\\s*BILL\\s*(\\d+).+?$", "\\1", acts.df$raw.txt)
@@ -80,6 +79,7 @@ clean_act_text <- function(acts.df) {
 
   # Drop remaining header, now that we've extracted sponsors and title information
   acts.df$munged.txt <- sub("^.+?BE IT ENACTED BY THE GENERAL ASSEMBLY OF THE STATE OF ARKANSAS:(.+)", "\\1", acts.df$munged.txt, ignore.case = TRUE)
+  acts.df$munged.txt <- gsub("^\\s+(.+)$", "\\1", acts.df$munged.txt)
   # grep("stricken", substring(acts.df$munged.txt, 1, 100), value = TRUE, ignore.case = TRUE) # Check to make sure instructions are removed
 
   #writeLines(acts.df[31, ]$munged.txt, "~/Desktop/out.txt")
