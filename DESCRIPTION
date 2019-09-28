@@ -1,13 +1,13 @@
 Package: aRlegislation
 Type: Package
 Title: A Dataset of Arkansas Legislation from 2001-2019
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: person("Nathan", "Chaney", role = c("aut", "cre", "cph"), email = "nathan@nathanchaney.com", comment = c(ORCID = "0000-0001-8985-2514"))
 Description: A dataset of legislation for natural language primarily for 
     processing and graph analysis. Legislative sessions are nested by cycle and 
-    session type. Three tibbles are included for each cycle/session: acts
+    session type. Each cycle/session contains three separate data frames: acts 
     (legislative text), lawmakers (metadata including political party), and 
-    sponsorship (links the other two tibbles).
+    sponsorship (links the other two data frames).
 License: CC BY 4.0
 Encoding: UTF-8
 LazyData: true
@@ -17,3 +17,11 @@ Imports:
     tibble, 
     tidyr
 RoxygenNote: 6.1.1
+Suggests: 
+    knitr,
+    rmarkdown,
+    dplyr,
+    tidygraph,
+    ggraph,
+    ggplot2
+VignetteBuilder: knitr

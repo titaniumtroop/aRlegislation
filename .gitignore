@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 aRlegislation.Rcheck
+inst/doc

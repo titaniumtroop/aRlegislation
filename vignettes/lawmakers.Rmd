@@ -1,0 +1,65 @@
+---
+title: "Lawmakers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{lawmakers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+suppressPackageStartupMessages(library(aRlegislation))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
+suppressPackageStartupMessages(library(ggplot2))
+```
+
+For purposes of this dataset, the term "sponsor" refers to one or more lawmakers or committees that propose an enacted bill during a legislative session. This table contains demographic information about lawmakers, so it excludes committees -- hence the name. Here's what the structure of one of the lawmakers tibbles looks like: 
+
+```{r lawmakers_head}
+head(legislation$lawmakers[[1]])
+```
+
+As an example, we can look at the political makeup of the lawmakers in each regular-session legislative chamber over time pretty easily:
+
+```{r cycle-chamber-party_plot, fig.width=7, fig.height=3}
+# Use party-related colors
+party.colors <- c(
+  "R" = "#990000", # dark red = Republicans
+  "D" = "#668cff", # light blue = Democrats
+  "G" = "#00cc00", # bright green = Green party
+  "I" = "#444444", # dark grey = Independent
+  "unk" = "#b3b300", # dark yellow = unknown
+  "bipartisan" = "#8A2BE2", # purple
+  "committee" = "#888888" # medium grey
+)
+
+legislation %>%
+  filter(grepl("R", session)) %>% # regular sessions only
+  unnest(lawmakers) %>%
+  count(cycle, session, party, chamber) %>%
+  ggplot(aes(y = n, x = cycle, color = party)) +
+    geom_point(size = 2.5) +
+    geom_line(size = 3) +
+    facet_wrap(~ chamber) +
+    scale_x_continuous(
+      breaks = seq(from = 2001, to = 2019, by = 4), 
+      minor_breaks = seq(from = 2001, to = 2019, by = 2)
+    ) +
+    scale_color_manual(values = party.colors) +
+    labs(
+      x = "",
+      y = "",
+      title = "Political Makeup of the Arkansas Legislature"
+    ) +
+    theme(legend.position = "none")
+```
+
+This graph shows a very pronounced switch in the makeup of both chambers of the Arkansas legislature between 2009 and 2017. 

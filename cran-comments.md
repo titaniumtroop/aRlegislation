@@ -1,3 +1,5 @@
+aRlegislation v0.1.4
+
 ## Test environments
 
 * local: x86_64-apple-darwin15.6.0-3.6.0
@@ -11,38 +13,16 @@
 
 ## R CMD check results
 
-0 errors | 0 warnings | 5 note (aggregate from all test environments)
+0 errors | 0 warnings | 2 note
 
 * checking CRAN incoming feasibility ... NOTE
   Maintainer: ‘Nathan Chaney <nathan@nathanchaney.com>’
   New submission
-  Possibly mis-spelled words in DESCRIPTION:
-    tibbles (8:25, 10:39)  
-  Size of tarball: 21205189 bytes
-  
-  First-time submitter. I'm happy to make any necessary changes.
+  Size of tarball: 21132107 bytes
 
 * checking installed package size ... NOTE
-  installed size is 28.4Mb
+  installed size is 29.7Mb
   sub-directories of 1Mb or more:
-    data  28.3Mb
+    data  29.1Mb
 
   This is a data package that will be rarely updated.
-  
-* checking dependencies in R code ... NOTE
-  Namespaces in Imports field not imported from:
-    ‘tibble’ ‘tidyr’
-    All declared Imports should be used.
-     
-  The dataset in this package contains nested tibbles, which come from the `tibble` package. `tidyr` is required to unnest the tibbles. While not technically required to install the package, these are required to access and use the dataset.
-  
-* checking top-level files ... NOTE
-  Non-standard file/directory found at top level:
-  ‘README_files’
-  
-  This directory contains png plots used in README.md.
-  
-* checking data for non-ASCII characters ... NOTE
-  Note: found 12761 marked UTF-8 strings
-
-  This dataset contains the text of 17k+ individual acts of legislation, plus their titles and subtitles, for natural language processing. The text encodings are from the original source documents available on the Arkansas legislature's website.
