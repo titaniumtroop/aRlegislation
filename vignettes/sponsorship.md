@@ -9,14 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 
-```{r setup}
+
+
+```r
 suppressPackageStartupMessages(library(aRlegislation))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
@@ -26,15 +22,26 @@ suppressPackageStartupMessages(library(ggraph))
 
 Sponsorship refers to individual laws that each lawmaker or committee presents to the legislative chamber. Some bills have a single sponsor, while others have many. Bills can be sponsored by lawmakers in one or both chambers, by a committee belonging to neither chamber, or some combination thereof. Since the number of lawmakers/committees that sponsor laws can change, this table is a two-column layout with a unique combination of act and sponsor per row:
 
-```{r sponsorship_head}
+
+```r
 head(legislation$sponsorship[[1]])
+#> # A tibble: 6 x 2
+#>     act sponsor               
+#>   <dbl> <chr>                 
+#> 1     1 Senate Efficiency     
+#> 2     2 Bevis                 
+#> 3     3 Magnus                
+#> 4     3 Broadway              
+#> 5     3 K. Smith              
+#> 6     4 Joint Budget Committee
 ```
 
 ## Summary Statistics
 
 The purpose of this simple layout is twofold. First, we want to be able to look at summary statistics about the number of sponsors per act. For instance, we can look at the total number of sponorships by each political party over time, which tells us how much credit each party's lawmakers claim for legislation:
 
-```{r sponsorship_plot, fig.width=7, fig.height=3}
+
+```r
 party.colors <- c(
   "R" = "#990000", # dark red = Republicans
   "D" = "#668cff", # light blue = Democrats
@@ -69,6 +76,8 @@ legislation %>%
     )
 ```
 
+![](sponsorship_files/figure-html/sponsorship_plot-1.png)<!-- -->
+
 ## Graph Analysis
 
 The second purpose of the sponsorship tibble to facilitate graph analysis. The sponsorship table contains information about graph edges, and the sponsor table contains additional information about graph vertices (that is, where vertices are lawmakers and not committees).
@@ -87,7 +96,8 @@ We'll illustrate how the graph works with an example from the 2019 regular sessi
 * Add metadata to the nodes so we can color them appropriately
 * Use uppercase for lawmakers in the Senate and lowercase for those in the House
 
-```{r sponsorship_graph}
+
+```r
 selected.cycle <- 27
 
 sponsorship_graph <- legislation$sponsorship[[selected.cycle]] %>%
@@ -127,11 +137,34 @@ sponsorship_graph <- legislation$sponsorship[[selected.cycle]] %>%
   mutate(name = ifelse(chamber == "Senate", toupper(name), tolower(name)))
 
 sponsorship_graph
+#> # A tbl_graph: 135 nodes and 8173 edges
+#> #
+#> # A directed acyclic simple graph with 1 component
+#> #
+#> # Node Data: 135 x 3 (active)
+#>   name         party chamber
+#>   <chr>        <chr> <chr>  
+#> 1 bentley      R     House  
+#> 2 gazaway      R     House  
+#> 3 b. smith     R     House  
+#> 4 capp         R     House  
+#> 5 lundstrum    R     House  
+#> 6 B. BALLINGER R     Senate 
+#> # … with 129 more rows
+#> #
+#> # Edge Data: 8,173 x 7
+#>    from    to from.party to.party     n    wt partisan
+#>   <int> <int> <chr>      <chr>    <int> <dbl> <chr>   
+#> 1     1     5 R          R           27  3.33 R       
+#> 2     2    88 R          R           24  3.22 R       
+#> 3     1    49 R          R           23  3.18 R       
+#> # … with 8,170 more rows
 ```
 
 With the graph constructed from the table of links, we can now visualize the links between the lawmakers: 
 
-```{r sponsorship-graph_plot, fig.width=7, fig.height=5}
+
+```r
 sponsorship_graph %>%
   mutate(degree = centrality_degree(weights = n)) %>%
   ggraph(layout = "fr") +
@@ -142,4 +175,6 @@ sponsorship_graph %>%
     theme_graph() +
     theme(legend.position = "none")
 ```
+
+![](sponsorship_files/figure-html/sponsorship-graph_plot-1.png)<!-- -->
 
