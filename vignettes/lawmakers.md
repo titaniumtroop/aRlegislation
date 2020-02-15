@@ -27,12 +27,12 @@ head(legislation$lawmakers[[1]])
 #> # A tibble: 6 x 11
 #>   sponsor sponsor_full_na… chamber party committee seniority district
 #>   <chr>   <chr>            <chr>   <chr> <chr>         <dbl>    <dbl>
-#> 1 Adams   Representative … House   D     TASK FOR…       -73       48
-#> 2 Agee    Representative … House   R     ARKANSAS…       -46        9
-#> 3 Allison Representative … House   D     PUBLIC T…        -9       86
-#> 4 Altes   Representative … House   R     PUBLIC H…       -66       14
-#> 5 Argue   Senator Jim Arg… Senate  D     ALC/JBC …       -13       15
-#> 6 B. Joh… Senator Bob Joh… Senate  D     AGRICULT…       -34       25
+#> 1 Adams   Bob Adams        House   D     TASK FOR…        73       48
+#> 2 Agee    Sarah Agee       House   R     ARKANSAS…        46        9
+#> 3 Allison Jerry Allison    House   D     PUBLIC T…         9       86
+#> 4 Altes   Denny Altes      House   R     PUBLIC H…        66       14
+#> 5 Argue   Jim Argue        Senate  D     ALC/JBC …        13       15
+#> 6 B. Joh… Bob Johnson      Senate  D     AGRICULT…        34       25
 #> # … with 4 more variables: occupation <chr>, church <chr>, veteran <chr>,
 #> #   public_service <chr>
 ```

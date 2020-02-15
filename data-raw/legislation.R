@@ -83,14 +83,14 @@ legislation <- acts.df %>%
   group_by(cycle, session) %>%
   arrange(cycle, session) %>%
   mutate_if(is.factor, as.character) %>%
-  nest(.key = "acts") %>%
+  nest_legacy(.key = "acts") %>%
   left_join(
     sponsors.detail %>%
       as_tibble() %>%
       group_by(cycle, session) %>%
       arrange(cycle, session) %>%
       mutate_if(is.factor, as.character) %>%
-      nest(.key = "lawmakers"),
+      nest_legacy(.key = "lawmakers"),
     by = c("cycle" = "cycle", "session" = "session")
   ) %>%
   left_join(
@@ -99,7 +99,7 @@ legislation <- acts.df %>%
       group_by(cycle, session) %>%
       arrange(cycle, session) %>%
       mutate_if(is.factor, as.character) %>%
-      nest(.key = "sponsorship"),
+      nest_legacy(.key = "sponsorship"),
     by = c("cycle" = "cycle", "session" = "session")
   )
 

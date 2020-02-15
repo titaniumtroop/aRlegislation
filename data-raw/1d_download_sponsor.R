@@ -171,8 +171,9 @@ sponsor.lookup <- function(sponsor, cycle, session) {
     # temp.public.service <- temp.info[21]
 
     # if (temp.chamber == "Senate") {
-      temp.seniority <- as.numeric(temp.seniority) * -1  # 1 is highest seniority
-    # } else {
+      # temp.seniority <- as.numeric(temp.seniority) * -1  # 1 is highest seniority
+      temp.seniority <- as.numeric(temp.seniority)  # Change to preserve officially-reported seniority
+      # } else {
       # temp.seniority <- -35 - as.numeric(temp.seniority) # Hosue seniority is generally lower than Senate, starts at -36
     # }
 
@@ -204,24 +205,24 @@ head(unique.sponsors)
 ## ----scrape sponsors-----------------------------------------------------
 
 # Serial
-# sponsors.detail <- data.frame()
-# time.scrape.sponsor <- system.time({
-#   for (i in NROW(unique.sponsors)) {
-#     message(unique.sponsors$sponsor[i])
-#     temp.df <- sponsor.lookup(unique.sponsors$sponsor[i], unique.sponsors$cycle[i], unique.sponsors$session[i])
-#     sponsors.detail <- rbind(sponsors.detail, temp.df)
-#    Sys.sleep(sample(seq(0.1,1,0.1),1)) # pause to avoid IP blocking
-#   }
-# })
-
-# Parallel
-registerDoParallel()
+sponsors.detail <- data.frame()
 time.scrape.sponsor <- system.time({
-  sponsors.detail <- foreach (sponsor = unique.sponsors$sponsor, cycle = unique.sponsors$cycle, session = unique.sponsors$session, .combine = rbind) %dopar% {
-    Sys.sleep(sample(seq(0.1,1,0.1),1)) # pause to avoid IP blocking
-    sponsor.lookup(sponsor = sponsor, cycle = cycle, session = session)
+  for (i in 1:NROW(unique.sponsors)) {
+    message(unique.sponsors$sponsor[i])
+    temp.df <- sponsor.lookup(unique.sponsors$sponsor[i], unique.sponsors$cycle[i], unique.sponsors$session[i])
+    sponsors.detail <- rbind(sponsors.detail, temp.df)
+    Sys.sleep(sample(seq(0.5, 2, by = 0.1),1)) # pause to avoid IP blocking
   }
 })
+
+# # Parallel
+# registerDoParallel()
+# time.scrape.sponsor <- system.time({
+#   sponsors.detail <- foreach (sponsor = unique.sponsors$sponsor, cycle = unique.sponsors$cycle, session = unique.sponsors$session, .combine = rbind) %dopar% {
+#     Sys.sleep(sample(seq(0.5, 2, by = 0.1), 1)) # pause to avoid IP blocking
+#     sponsor.lookup(sponsor = sponsor, cycle = cycle, session = session)
+#   }
+# })
 
 sponsors.detail <- as_tibble(sponsors.detail)
 

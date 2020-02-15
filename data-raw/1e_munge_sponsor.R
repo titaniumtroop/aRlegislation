@@ -197,6 +197,8 @@ sponsors.detail %>%
 # 2009 Trusty is Senator
 # 2009 Cole is Representative
 
+# temp[temp$V1 == 2 & temp$V2 == 12, ] <- c(1:10)
+
 sponsors.detail$chamber[
   sponsors.detail$cycle == 2009 &
   sponsors.detail$session == "R" &
@@ -690,7 +692,15 @@ sponsors.detail <- sponsors.detail %>%
 
 #round(NROW(sponsors.detail %>% filter(is.na(party))) / NROW(sponsors.detail) * 100, 1)
 
+## --- clean sponsor full name --------------------------------------------
 
+sponsors.detail$sponsor.full.name <- gsub("^(Representative|Senator)\\s+", "", sponsors.detail$sponsor.full.name) # Remove Title at beginning
+sponsors.detail$sponsor.full.name <- gsub("\\s+\\(\\w\\)\\s*$", "", sponsors.detail$sponsor.full.name) # Remove party designation
+sponsors.detail$sponsor.full.name <- gsub("\\s+\\((Representative|Senator)\\)\\s*$", "", sponsors.detail$sponsor.full.name) # Remove chamber designation
+
+# sponsors.detail %>%
+#   distinct(sponsor.full.name, sponsor) %>%
+#   arrange(sponsor)
 
 ## ----factor sponsor detail-----------------------------------------------
 
