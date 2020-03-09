@@ -1,4 +1,4 @@
-packages <- c("dplyr", "stringr", "tidyr")
+packages <- c("dplyr", "stringr", "tidyr", "xml2", "rvest")
 #lapply(packages, install.packages)
 lapply(packages, require, character.only = TRUE)
 rm(packages)
@@ -199,41 +199,61 @@ sponsors.detail %>%
 
 # temp[temp$V1 == 2 & temp$V2 == 12, ] <- c(1:10)
 
-sponsors.detail$chamber[
+# Detail from ballotpedia, https://ballotpedia.org/Arkansas_State_Senate_elections,_2008
+sponsors.detail[
   sponsors.detail$cycle == 2009 &
   sponsors.detail$session == "R" &
-  sponsors.detail$sponsor == "Trusty"
-] <- "Senate"
+  sponsors.detail$sponsor == "Trusty",
+  c("chamber", "district", "sponsor.full.name", "party")
+] <- c("Senate", 4, "Sharon Trusty", "R")
 
-sponsors.detail$chamber[
+# Detail from ballotpedia, https://ballotpedia.org/Arkansas_House_of_Representatives_elections,_2008
+sponsors.detail[
   sponsors.detail$cycle == 2009 &
-  (sponsors.detail$session == "2010F" | sponsors.detail$session == "R") &
-  sponsors.detail$sponsor == "Cole"
-] <- "House"
+  sponsors.detail$session == "2010F" &
+  sponsors.detail$sponsor == "Cole",
+  c("sponsor.full.name", "chamber", "party", "district")
+] <- c("Steve Cole", "House", "D", 21)
 
-sponsors.detail$chamber[
+sponsors.detail[
+  sponsors.detail$cycle == 2009 &
+  sponsors.detail$session == "R" &
+  sponsors.detail$sponsor == "Cole",
+  c("sponsor.full.name", "chamber", "party", "district")
+  ] <- c("Steve Cole", "House", "D", 21)
+
+# Detail from ballotpedia, https://ballotpedia.org/Arkansas_House_of_Representatives_elections,_2004
+# There's an earlier Creekmore, later Dawn Creekmores use her initial, so we'll change that here
+sponsors.detail[
+  sponsors.detail$session == "R" &
   (sponsors.detail$cycle == 2005 | sponsors.detail$cycle == 2007) &
-  sponsors.detail$session == "R" &
-  sponsors.detail$sponsor == "Creekmore"
-] <- "House"
+  sponsors.detail$sponsor == "Creekmore",
+  c("chamber", "district", "sponsor.full.name", "sponsor", "party")
+] <- c("House", 27, "Dawn Creekmore", "D. Creekmore", "D")
 
-sponsors.detail$chamber[
+# Detail from Ballotpedia, https://ballotpedia.org/Arkansas_House_of_Representatives_elections,_2000
+sponsors.detail[
   sponsors.detail$cycle == 2001 &
   sponsors.detail$session == "R" &
-  sponsors.detail$sponsor == "Hunt"
-] <- "House"
+  sponsors.detail$sponsor == "Hunt",
+  c("chamber", "sponsor.full.name", "district")
+] <- c("House", "Russ Hunt", 68)
 
-sponsors.detail$chamber[
+#Detail from Old legislature site, https://www.arkleg.state.ar.us/Legislators/Detail?ddBienniumSession=1999%2FR&member=Webb
+sponsors.detail[
   sponsors.detail$cycle == 2001 &
   sponsors.detail$session == "R" &
-  sponsors.detail$sponsor == "Webb"
-] <- "Senate"
+  sponsors.detail$sponsor == "Webb",
+  c("chamber", "sponsor.full.name", "district", "seniority", "occupation", "church", "public_service", "committee")
+] <- c("Senate", "Doyle Webb", 14, 24, "Attorney", "Presbyterian", "Saline County Quorum Court: Justice of the Peace", "ALC-JBC BUDGET HEARINGS, ALC-REVIEW, ALC-PEER, ALC-LITIGATION REPORTS SUBCOMMITTEE, JUDICIARY COMMITTEE - SENATE, CITY, COUNTY & LOCAL AFFAIRS COMMITTEE - SENATE, CHILDREN AND YOUTH COMMITTEE - SENATE, RURAL FIRE DEPARTMENTS STUDY COMMITTEE, LEGISLATIVE AUDIT, LEGISLATIVE AUDIT-State Agencies, SENATE RULES, LEGISLATIVE COUNCIL")
 
-sponsors.detail$chamber[
+# Detail from Ballotpedia, https://ballotpedia.org/Arkansas_House_of_Representatives_elections,_2010
+sponsors.detail[
   sponsors.detail$cycle == 2011 &
   sponsors.detail$session == "2011R" &
-  sponsors.detail$sponsor == "F. Smith"
-] <- "House"
+  sponsors.detail$sponsor == "F. Smith",
+  c("sponsor.full.name", "chamber", "district", "occupation")
+] <- c("Fred Smith", "House", 54, "Harlem Globetrotter")
 
 
 ## ----inspect remaining missing profiles----------------------------------
@@ -702,7 +722,11 @@ sponsors.detail$sponsor.full.name <- gsub("\\s+\\((Representative|Senator)\\)\\s
 #   distinct(sponsor.full.name, sponsor) %>%
 #   arrange(sponsor)
 
-## ----factor sponsor detail-----------------------------------------------
+## ---- clean committee membership of JS ------------------------------------
+
+sponsors.detail$committee <- gsub(".+?General Assembly > .+? Session.+?Committees\\s*(.*)\\s*Bill\\s*Bill\\s*Status.*", "\\1", sponsors.detail$committee)
+
+ ## ---- factor sponsor detail-----------------------------------------------
 
 sponsors.detail$party[is.na(sponsors.detail$party)] <- "unk"
 

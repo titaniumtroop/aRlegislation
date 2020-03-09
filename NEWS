@@ -1,0 +1,30 @@
+v0.1.6:
+--------------------
+* Manually updated missing sponsor full names and some other missing details
+
+v0.1.5:
+--------------------
+* Added legislation_corpus dataset
+* Change seniority to match listed number (was multiplied by -1 so #1 seniority was highest; however, not using that field for anything currently, and shouldn't be confusing to future users)
+* Further cleaning of sponsor details
+
+v0.1.4:
+--------------------
+* Moved README examples to vignettes
+
+v0.1.3:
+--------------------
+* Fix munging error that left footers in some act text
+
+v0.1.2:
+--------------------
+* Run all CRAN build checks to confirm that package works across multiple systems
+
+v0.1.1:
+--------------------
+* change column names in dataset to be tidy-compliant
+* first README draft added
+
+v0.1.0:
+--------------------
+* Initial commit of data package that passes R CMD build checks
