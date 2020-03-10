@@ -24,8 +24,5 @@
 #'   \item{sponsorship}{tibble of act number and sponsor}
 #' }
 #'
-#' @examples
-#'   head(legislation$acts[[1]])
-#'
 #' @source \url{https://github.com/titaniumtroop/aRlegislation/}
 "legislation"

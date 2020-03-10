@@ -6,6 +6,7 @@
 #' seniority, committee membership, etc. For convenience, the count of the total
 #' number of cycle/session combinations is provided.
 #'
+#'
 #' @format A nested tibble with 474 rows and 3 variables:
 #' \describe{
 #'   \item{sponsor_full_name}{name of the lawmaker}

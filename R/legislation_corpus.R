@@ -16,8 +16,5 @@
 #'   \item{text_stemmed}{a VCorpus of stemmed act text}
 #' }
 #'
-#' @examples
-#'   head(legislation_corpus$text_stemmed[[1]])
-#'
 #' @source \url{https://github.com/titaniumtroop/aRlegislation/}
 "legislation_corpus"
