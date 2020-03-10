@@ -717,6 +717,7 @@ sponsors.detail <- sponsors.detail %>%
 sponsors.detail$sponsor.full.name <- gsub("^(Representative|Senator)\\s+", "", sponsors.detail$sponsor.full.name) # Remove Title at beginning
 sponsors.detail$sponsor.full.name <- gsub("\\s+\\(\\w\\)\\s*$", "", sponsors.detail$sponsor.full.name) # Remove party designation
 sponsors.detail$sponsor.full.name <- gsub("\\s+\\((Representative|Senator)\\)\\s*$", "", sponsors.detail$sponsor.full.name) # Remove chamber designation
+sponsors.detail$sponsor.full.name <- trimws(gsub("\\s+", " ", sponsors.detail$sponsor.full.name)) # Standardize whitespace
 
 # sponsors.detail %>%
 #   distinct(sponsor.full.name, sponsor) %>%

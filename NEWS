@@ -1,3 +1,8 @@
+v0.1.7:
+--------------------
+* Bug fixes for sponsor names
+* Create nested dataset for entity-resolved lawmakers that nests their details for each session
+
 v0.1.6:
 --------------------
 * Manually updated missing sponsor full names and some other missing details
