@@ -1,3 +1,8 @@
+v0.1.8:
+--------------------
+* Add corruption flag to lawmakers dataset (defaults to FALSE; set to TRUE only with comment showing link to news source)
+* Considering whether to deprecate using sponsor short name as assigned during each session, and instead use a legislator_id based on the entity-resolved lawmakers
+
 v0.1.7:
 --------------------
 * Bug fixes for sponsor names

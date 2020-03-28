@@ -1,7 +1,7 @@
 Package: aRlegislation
 Type: Package
 Title: A Dataset of Arkansas Legislation from 2001-2019
-Version: 0.1.7
+Version: 0.1.8
 Authors@R: person("Nathan", "Chaney", role = c("aut", "cre", "cph"), email = "nathan@nathanchaney.com", comment = c(ORCID = "0000-0001-8985-2514"))
 Description: A dataset of legislation for natural language primarily for 
     processing and graph analysis. Legislative sessions are nested by cycle and 

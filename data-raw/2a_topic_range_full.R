@@ -23,6 +23,7 @@ max <- 103
 min <- 100
 more.topics <- seq(from = min, to = max)
 
+parallel::detectCores()
 parallelCluster <- parallel::makeCluster(parallel::detectCores())
 parallelCluster
 

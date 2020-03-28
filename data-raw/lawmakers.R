@@ -113,7 +113,7 @@ for (i in 1:NROW(temp)) {
 
 
 
-## ------------------------------------------------------------------------
+## Create nested session information by lawmaker --------------------------------------------
 
 lawmakers <- lawmakers %>%
 #  distinct(cycle, session, sponsor, sponsor_full_name) %>%
@@ -122,6 +122,52 @@ lawmakers <- lawmakers %>%
   ungroup() %>%
   nest(sessions = -c(sponsor_full_name, count)) %>%
   arrange(sponsor_full_name)
+
+## Annotate nested session information ------------------------------------------------------
+
+lawmakers$corruption <- FALSE
+
+# Source: https://www.4029tv.com/article/arkansas-grapples-with-ethics-cleanup-amid-federal-probes/26501201
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Jon Woods", "Jeremy Hutchinson", 'Henry "Hank" Wilkins, IV', "Gilbert Baker")
+] <- TRUE
+
+# Source: https://arktimes.com/arkansas-blog/2019/11/25/rusty-cranford-gets-seven-years-in-public-corruption-case
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Micah S. Neal", "Eddie Cooper")
+  ] <- TRUE
+
+# Source: https://www.4029tv.com/article/jake-files-is-out-of-prison-and-back-in-fort-smith/29714296
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Jake Files")
+  ] <- TRUE
+
+# Conviction occurred when Shoffner was State Treasurer, which was immediately after her term in the legislature
+# Source: https://www.fbi.gov/contact-us/field-offices/littlerock/news/press-releases/former-arkansas-state-treasurer-martha-shoffner-sentenced-to-30-months-in-prison-for-extortion-and-bribery
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Martha A. Shoffner")
+  ] <- TRUE
+
+# Source: https://ballotpedia.org/Paul_Bookout
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Paul Bookout")
+  ] <- TRUE
+
+# Source: https://www.latimes.com/nation/politics/la-na-fred-smith-arkansas-20140518-story.html
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Fred Smith")
+  ] <- TRUE
+
+# Source: https://www.arkansasonline.com/news/2019/oct/11/arkansas-house-votes-88-4-expel-rep-mickey-gates/
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Mickey Gates")
+  ] <- TRUE
+
+# Source: https://arktimes.com/arkansas-blog/2014/10/03/steven-b-jones-former-legislator-and-dhs-official-pleads-in-federal-bribery-case
+lawmakers$corruption[
+  lawmakers$sponsor_full_name %in% c("Steven B. Jones")
+  ] <- TRUE
+
 
 usethis::use_data(lawmakers, compress = "bzip2", overwrite = TRUE)
 
