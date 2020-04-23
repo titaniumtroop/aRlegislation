@@ -6,16 +6,18 @@ output: github_document
 
 [![Build Status](https://travis-ci.com/titaniumtroop/aRlegislation.svg?branch=master)](https://travis-ci.com/titaniumtroop/aRlegislation)
 
-This package provides a dataset of Arkansas legislation from 2001-2019 for data exploration, natural language processing, and graph analysis. The dataset is structured as a nested tibble containing distinct legislative sessions, nested by cycle (every two years) and session type. 
+This package provides a dataset of Arkansas legislation from 2001-2019 for data exploration, natural language processing, and graph analysis. Pre-calculated topic models are provided; however, these files are large, so only a few are included in the package build. 
 
-Because the package uses nested tibbles, the `tidyr` package is required to use the dataset:
+The primary datasets is structured as a nested tibble containing distinct legislative sessions, nested by cycle (every two years) and session type. Because the package uses nested tibbles, the `tidyr` package is required to use the dataset:
 
 ```{r libraries, warning = F, message=F}
 library(aRlegislation)
 library(tidyr) # needed for nest/unnest operations
 ```
 
-The structure of the dataset is:
+## `legislation` dataset
+
+The structure of the `legislation` dataset is:
 
 ```{r legislation_head}
 head(legislation)
@@ -28,6 +30,36 @@ There are three different datasets for each legislative cycle and session:
 * `sponsorship`: a simple table containing act number and sponsor name
 
 The vignettes provide more detail about each type of nested tibble, and also provide an example or two of analyses that can be performed using each type of tibble.
+
+## `lawmakers` dataset
+
+The structure of the `lawmakers` dataset is:
+
+```{r lawmakers_head}
+head(lawmakers)
+```
+
+This dataset provides entity resolution for the sponsors of legislation across the cycles and sessions contained in the `legislation` dataset. Per-cycle/session information is nested in the dataframe. A corruption flag has been added for each legislator; the source code contains links in the comments to the news articles and U.S. attorney press releases announcing public corruption charges/convictions.
+
+## `legislation_corpus` dataset
+
+The structure of the `legislation_corpus` dataset is:
+
+```{r legislation_corpus_head}
+head(legislation_corpus)
+```
+
+This dataset provides various VCorpus objects based on the act titles and text in the `legislation` dataset. There is also a stemmed version that is useful for conducting topical analyses.
+
+## Topic modeling
+
+A large amount of topic modeling has been conducted on the dataset; this is a time-consuming process, so various functions are provided to load topic models and other models derived from them. Those functions are:
+
+* `load_topic_models`: loads the LDA Gibbs objects for the specified range of topics (currently 100-203)
+* `load_lawmaker_models`: loads the dot product of the sparse lawmaker sponsorship matrix and the LDA Gibbs gamma matrix for the specified range of topics; this represents a "career view" topic model for each lawmaker
+* `load_lawmaker_session_models`: loads the ot product of the sparse, by-session lawmaker sponsorship matrix and the LDA Gibbs gamma matrix for the specified range of topics; this represents a "session view" topic model for each lawmaker's activity over time
+
+Note: As noted above, only a few topic models are provided in the package build in order to keep the size down. Additional topic models in the data/*_model subdirectories can be downloaded if needed. In particular, the topic models are large -- on the order of 1.6GB. Use care when downloading, loading, and processing.
 
 # Future Plans
 

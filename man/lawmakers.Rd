@@ -4,12 +4,14 @@
 \name{lawmakers}
 \alias{lawmakers}
 \title{Arkansas lawmakers from 2001 through the 2019 regular session.}
-\format{A nested tibble with 474 rows and 3 variables:
+\format{
+A nested tibble with 474 rows and 3 variables:
 \describe{
   \item{sponsor_full_name}{name of the lawmaker}
   \item{count}{the number of cycle/session entries for the lawmaker}
   \item{sessions}{information about the lawmaker from each session in which the lawmaker sponsored an act}
-}}
+}
+}
 \source{
 \url{https://github.com/titaniumtroop/aRlegislation/}
 }

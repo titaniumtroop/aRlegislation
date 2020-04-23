@@ -4,3 +4,7 @@
 .Ruserdata
 aRlegislation.Rcheck
 inst/doc
+.old
+*/*.old
+data-raw/results
+demo

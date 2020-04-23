@@ -1,9 +1,14 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^data-raw$
+^demo$
 \.Rhistory
 ^cran-comments\.md$
 ^README\.Rmd$
 ^aRlegislation\.Rcheck$
 \.travis\.yml
 ^revdep$
+^.*\.old$
+data-raw/results
+^data-raw/results$
+^data/.*/.*1\d\d.*$

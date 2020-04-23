@@ -4,14 +4,16 @@
 \name{legislation}
 \alias{legislation}
 \title{Arkansas legislation from 2001 through the 2019 regular session.}
-\format{A nested tibble with 27 rows and 5 variables:
+\format{
+A nested tibble with 27 rows and 5 variables:
 \describe{
   \item{cycle}{year of the legislative cycle}
   \item{session}{session type and number}
   \item{acts}{tibble of act number, title, subtitle, text, and partisanship}
   \item{lawmakers}{tibble of demographic information about elected representatives}
   \item{sponsorship}{tibble of act number and sponsor}
-}}
+}
+}
 \source{
 \url{https://github.com/titaniumtroop/aRlegislation/}
 }
@@ -32,9 +34,5 @@ variables such as chamber, party, seniority (a negative integer, since lower
 numbers are better), committee membership, district, prior public service,
 veteran status, and church affiliation. The third table contains act
 sponsorship information in a simple list of sponsor name and act number.
-}
-\examples{
-  head(legislation$acts[[1]])
-
 }
 \keyword{datasets}
