@@ -76,7 +76,7 @@ for (i in 1:NROW(topic_models)) {
   assign(paste("topic_model", j, sep = "_"), topic_models[i,])
   saveRDS(
     get(paste("topic_model", j, sep = "_")),
-    file = paste0("./data/topic_models/topic_model_", j, ".RData"),
+    file = paste0("./inst/extdata/topic_model_", j, ".rds"),
     compress = "bzip2"
   )
 }

@@ -4,10 +4,10 @@
 \alias{load_topic_models}
 \title{Loads pre-generated LDA topic models of aRlegislation}
 \usage{
-load_topic_models(datadir = "./data/topic_models/", topics = NULL)
+load_topic_models(datadir = NULL, topics = NULL)
 }
 \arguments{
-\item{datadir}{A directory containing topic models in nested dataframe format.}
+\item{datadir}{A directory containing topic models in nested dataframe format. If NULL, the inst/extdata and extdata directories are searched in the installation directory. The inst/extdata directory should be explicitly declared to use all files, as only a few models are provided in the installation.}
 
 \item{topics}{An integer, a vector of integers, or named vector in c(to = x, from = y) format. Defaults to first 10.}
 }

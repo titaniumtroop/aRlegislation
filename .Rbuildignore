@@ -11,4 +11,11 @@
 ^.*\.old$
 data-raw/results
 ^data-raw/results$
-^data/.*/.*1\d\d.*$
+^inst/extdata/.*/.*1\d\d.*$
+^inst/extdata/.*1\d\d.*$
+^extdata/.*/.*1\d\d.*$
+^extdata/.*1\d\d.*$
+^inst/extdata/.*/.*2\d[2-9].*$
+^inst/extdata/.*2\d[2-9].*$
+^extdata/.*/.*2\d[2-9].*$
+^extdata/.*2\d[2-9].*$

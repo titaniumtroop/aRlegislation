@@ -59,7 +59,7 @@ A large amount of topic modeling has been conducted on the dataset; this is a ti
 * `load_lawmaker_models`: loads the dot product of the sparse lawmaker sponsorship matrix and the LDA Gibbs gamma matrix for the specified range of topics; this represents a "career view" topic model for each lawmaker
 * `load_lawmaker_session_models`: loads the ot product of the sparse, by-session lawmaker sponsorship matrix and the LDA Gibbs gamma matrix for the specified range of topics; this represents a "session view" topic model for each lawmaker's activity over time
 
-Note: As noted above, only a few topic models are provided in the package build in order to keep the size down. Additional topic models in the data/*_model subdirectories can be downloaded if needed. In particular, the topic models are large -- on the order of 1.6GB. Use care when downloading, loading, and processing.
+Note: As noted above, only a few topic models are provided in the package build in order to keep the size down. Additional topic models in the inst/extdata/*_model subdirectories can be downloaded if needed. In particular, the topic models are large -- on the order of 1.9GB. Use care when downloading, loading, and processing.
 
 # Future Plans
 

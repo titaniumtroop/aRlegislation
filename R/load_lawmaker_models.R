@@ -8,26 +8,39 @@
 #' in the aggregate, so they are saved individually. This function permits
 #' topics within a specified range to be loaded.
 #'#'
-#' @param datadir A directory containing lawmaker models in nested dataframe format.
+#' @param datadir A directory containing lawmaker models in nested dataframe format. If NULL, the inst/extdata and extdata directories are searched in the installation directory. The inst/extdata directory should be explicitly declared to use all files, as only a few models are provided in the installation.
 #' @param topics An integer or a vector of integers. Defaults to first 10.
 #' @return A nested dataframe with a column named lawmaker_models for each of the topics specified.
 #'
 #' @export
 
 load_lawmaker_models <- function(
-  datadir = "./data/lawmaker_models/",
+  datadir = NULL,
   topics = NULL
 ) {
 
-  if (! dir.exists(datadir)) {
-    stop("The directory you provided does not exist.")
+  if (! is.null(datadir)) {
+    if (! dir.exists(datadir)) {
+      stop("The directory you provided does not exist.")
+    }
+  }
+
+  # Using 200 here because that's what's left in the directory from .Rbuildignore
+  if (is.null(datadir)) {
+    location <- try({
+      system.file("extdata", "lawmaker_model_200.rds", package="aRlegislation", mustWork = TRUE)
+    })
+    if (class(location) == "try-error") {
+      stop("No models found.")
+    }
+    datadir <- sub("(.+/).*?$", "\\1", location)
   }
 
   # Get directory listing
-  dir.files <- list.files(datadir, "Rdata", full.names = TRUE, ignore.case = TRUE)
+  dir.files <- list.files(datadir, "rds", full.names = TRUE, ignore.case = TRUE)
   dir.files <- dir.files[grepl("lawmaker_model", dir.files)] # Ignore other files placed here
   dir.files <- data.frame(filename = dir.files, stringsAsFactors = F)
-  dir.files$topics <- as.numeric(sub(".*?_(\\d+)\\.RData", "\\1", dir.files$filename))
+  dir.files$topics <- as.numeric(sub(".*?_(\\d+).*", "\\1", dir.files$filename))
 
   if (class(topics) == "NULL") {
     dir.files.filtered <- utils::head(dir.files, 10)

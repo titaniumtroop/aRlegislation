@@ -10,7 +10,7 @@ options(future.globals.maxSize = 3*1024*1024^2) # 3GB max, 500MB caused errors
 ## ----load topic models ---------------------------------
 
 # Load topic distributions from storage
-topic_models <- load_topic_models(25:325)
+topic_models <- load_topic_models(datadir = "./inst/extdata/", 75:250)
 
 # ---- Create parallel cluster ---------------------
 ## Single System
@@ -134,7 +134,7 @@ for (i in 1:NROW(lawmaker_session_models)) {
   assign(paste("lawmaker_session_model", j, sep = "_"), lawmaker_session_models[i,])
   saveRDS(
     get(paste("lawmaker_session_model", j, sep = "_")),
-    file = paste0("./data/lawmaker_session_models/lawmaker_session_model_", j, ".RData"),
+    file = paste0("./inst/extdata/lawmaker_session_model_", j, ".rds"),
     compress = "bzip2"
   )
 }

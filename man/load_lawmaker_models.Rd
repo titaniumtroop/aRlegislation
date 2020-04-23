@@ -4,10 +4,10 @@
 \alias{load_lawmaker_models}
 \title{Loads pre-generated lawmaker models based on LDA model topic distributions}
 \usage{
-load_lawmaker_models(datadir = "./data/lawmaker_models/", topics = NULL)
+load_lawmaker_models(datadir = NULL, topics = NULL)
 }
 \arguments{
-\item{datadir}{A directory containing lawmaker models in nested dataframe format.}
+\item{datadir}{A directory containing lawmaker models in nested dataframe format. If NULL, the inst/extdata and extdata directories are searched in the installation directory. The inst/extdata directory should be explicitly declared to use all files, as only a few models are provided in the installation.}
 
 \item{topics}{An integer or a vector of integers. Defaults to first 10.}
 }
