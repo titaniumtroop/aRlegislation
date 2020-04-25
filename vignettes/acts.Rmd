@@ -1,13 +1,16 @@
 ---
 title: "Acts"
-output: 
-  rmarkdown::html_vignette:
-    keep_md: TRUE
+output:
+  github_document:
+    html_preview: false
 vignette: >
   %\VignetteIndexEntry{Acts}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+
+This vignette examines the structure of the `acts` tibbles contained within the `legislation` dataset and displays the partisanship of the Arkansas Legislature over time as an exmample use case. 
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -16,14 +19,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-suppressPackageStartupMessages(library(aRlegislation))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
-suppressPackageStartupMessages(library(ggplot2))
+```{r setup, message=F, warning=F}
+library(aRlegislation)
+library(dplyr)
+library(tidyr) # needed for nest/unnest operations
+library(ggplot2)
 ```
 
-The acts tibbles contain the text of laws passed during each cycle/session, along with a little bit of metadata about the acts: 
+The `acts` tibbles contain the text of laws passed during each cycle/session, along with a little bit of metadata about the acts: 
 
 ```{r acts_head}
 head(legislation$acts[[1]])

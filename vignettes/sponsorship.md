@@ -1,29 +1,27 @@
----
-title: "Sponsorship"
-output: 
-  rmarkdown::html_vignette:
-    keep_md: TRUE
-vignette: >
-  %\VignetteIndexEntry{Sponsorship}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
+Sponsorship
+================
 
+This vignette examines the structure of the `sponsorship` tibbles
+contained within the `legislation` dataset and renders a network graph
+as an example use case.
 
-
-
-```r
-suppressPackageStartupMessages(library(aRlegislation))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
-suppressPackageStartupMessages(library(tidygraph))
-suppressPackageStartupMessages(library(ggraph))
+``` r
+library(aRlegislation)
+library(dplyr)
+library(tidyr) # needed for nest/unnest operations
+library(tidygraph)
+library(ggraph)
 ```
 
-Sponsorship refers to individual laws that each lawmaker or committee presents to the legislative chamber. Some bills have a single sponsor, while others have many. Bills can be sponsored by lawmakers in one or both chambers, by a committee belonging to neither chamber, or some combination thereof. Since the number of lawmakers/committees that sponsor laws can change, this table is a two-column layout with a unique combination of act and sponsor per row:
+Sponsorship refers to individual laws that each lawmaker or committee
+presents to the legislative chamber. Some bills have a single sponsor,
+while others have many. Bills can be sponsored by lawmakers in one or
+both chambers, by a committee belonging to neither chamber, or some
+combination thereof. Since the number of lawmakers/committees that
+sponsor laws can change, this table is a two-column layout with a unique
+combination of act and sponsor per row:
 
-
-```r
+``` r
 head(legislation$sponsorship[[1]])
 #> # A tibble: 6 x 2
 #>     act sponsor               
@@ -38,10 +36,13 @@ head(legislation$sponsorship[[1]])
 
 ## Summary Statistics
 
-The purpose of this simple layout is twofold. First, we want to be able to look at summary statistics about the number of sponsors per act. For instance, we can look at the total number of sponorships by each political party over time, which tells us how much credit each party's lawmakers claim for legislation:
+The purpose of this simple layout is twofold. First, we want to be able
+to look at summary statistics about the number of sponsors per act. For
+instance, we can look at the total number of sponorships by each
+political party over time, which tells us how much credit each party’s
+lawmakers claim for legislation:
 
-
-```r
+``` r
 party.colors <- c(
   "R" = "#990000", # dark red = Republicans
   "D" = "#668cff", # light blue = Democrats
@@ -76,28 +77,39 @@ legislation %>%
     )
 ```
 
-![](sponsorship_files/figure-html/sponsorship_plot-1.png)<!-- -->
+![](sponsorship_files/figure-gfm/sponsorship_plot-1.png)<!-- -->
 
 ## Graph Analysis
 
-The second purpose of the sponsorship tibble to facilitate graph analysis. The sponsorship table contains information about graph edges, and the sponsor table contains additional information about graph vertices (that is, where vertices are lawmakers and not committees).
+The second purpose of the sponsorship tibble to facilitate graph
+analysis. The sponsorship table contains information about graph edges,
+and the sponsor table contains additional information about graph
+vertices (that is, where vertices are lawmakers and not committees).
 
-We'll illustrate how the graph works with an example from the 2019 regular session. This is a little more in-depth than the previous examples, since we'll need to generate a to-from relationship from the raw data about sponsorships. The pipeline is a little on the long side, so here are the steps:
+We’ll illustrate how the graph works with an example from the 2019
+regular session. This is a little more in-depth than the previous
+examples, since we’ll need to generate a to-from relationship from the
+raw data about sponsorships. The pipeline is a little on the long side,
+so here are the steps:
 
-* Link the raw sponsorship data with the sponsor table to generate a list of lawmakers and their party affiliations
-* Rename columns to indicate this is the "from" tibble
-* Repeat step 1
-* Rename columns to indicate this is the "to" tibble 
-* Join the from and to tibbles 
-* Filter out any duplicate records, since there's no directionality to sponsorship
-* Count the number of links between lawmakers
-* Identify whether those links are bipartisan or not
-* Create the graph
-* Add metadata to the nodes so we can color them appropriately
-* Use uppercase for lawmakers in the Senate and lowercase for those in the House
+  - Link the raw sponsorship data with the sponsor table to generate a
+    list of lawmakers and their party affiliations
+  - Rename columns to indicate this is the “from” tibble
+  - Repeat step 1
+  - Rename columns to indicate this is the “to” tibble
+  - Join the from and to tibbles
+  - Filter out any duplicate records, since there’s no directionality to
+    sponsorship
+  - Count the number of links between lawmakers
+  - Identify whether those links are bipartisan or not
+  - Create the graph
+  - Add metadata to the nodes so we can color them appropriately
+  - Use uppercase for lawmakers in the Senate and lowercase for those in
+    the House
 
+<!-- end list -->
 
-```r
+``` r
 selected.cycle <- 27
 
 sponsorship_graph <- legislation$sponsorship[[selected.cycle]] %>%
@@ -161,10 +173,10 @@ sponsorship_graph
 #> # … with 8,170 more rows
 ```
 
-With the graph constructed from the table of links, we can now visualize the links between the lawmakers: 
+With the graph constructed from the table of links, we can now visualize
+the links between the lawmakers:
 
-
-```r
+``` r
 sponsorship_graph %>%
   mutate(degree = centrality_degree(weights = n)) %>%
   ggraph(layout = "fr") +
@@ -176,5 +188,4 @@ sponsorship_graph %>%
     theme(legend.position = "none")
 ```
 
-![](sponsorship_files/figure-html/sponsorship-graph_plot-1.png)<!-- -->
-
+![](sponsorship_files/figure-gfm/sponsorship-graph_plot-1.png)<!-- -->

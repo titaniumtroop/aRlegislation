@@ -1,0 +1,319 @@
+---
+title: "SVM"
+author: "Nathan Chaney"
+date: "4/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = TRUE
+)
+
+packages <- c("tidyverse", "ggplot2", "ggridges", "gganimate", "gifski")
+lapply(packages, require, character.only = TRUE)
+rm(packages)
+
+options( scipen = 10 ) # print full numbers, not scientific notation
+options(future.globals.maxSize = 3*1024*1024^2) # 3GB max, 500MB caused errors
+# Sys.setenv("R_MAX_VSIZE"= 8e9) # has to be set by .Renviron
+
+```
+
+
+```{r load topic models and sponsorship matrix}
+
+# Load topic distributions from storage
+dir.files <- list.files("../data-raw/results-scores", "Rdata", full.names = TRUE, ignore.case = TRUE)
+dir.file.info <- file.info(dir.files)
+dir.file.info$name <- dir.files
+
+newest.file <- dir.file.info %>%
+  filter(size > 0 & grepl("SVM_results_short", name)) %>%
+  arrange(mtime)
+
+newest.file$iter <- seq_len(NROW(newest.file)) - 1
+
+# %>%
+#   top_n(1, mtime) %>%
+#   select(name)
+
+```
+
+```{r load iterations}
+
+
+SVM_results_agg <- tibble()
+
+for (i in 1:NROW(newest.file)) {
+  load(newest.file$name[[i]])
+  SVM_results$iter <- newest.file$iter[[i]]
+  SVM_results$weight <- NULL
+  SVM_results_agg <- bind_rows(SVM_results_agg, SVM_results)
+  rm(SVM_results)
+}
+
+SVM_results_filtered <- SVM_results_agg %>%
+  filter(!is.na(F1) & F1 >=0)
+  # filter(F1 > .1)
+
+height = 4
+width = 6
+max.iter = max(SVM_results_agg$iter)
+
+```
+
+```{r}
+
+min.F1 <- min(SVM_results_filtered$F1) - 0.05
+max.F1 <- max(SVM_results_filtered$F1) * 1.05
+
+SVM_results_filtered %>%
+  ggplot(aes(F1)) +
+    theme_ridges() +
+    geom_histogram() +
+    labs(
+      title = "Distribution of F1 scores"
+    ) +
+    scale_x_continuous(limits = c(min.F1, max.F1)) +
+    transition_states(iter, transition_length = 2, state_length = 1)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_histogram.gif"), height = height, width = height)
+
+
+```
+
+```{r}
+
+min.topics <- min(SVM_results_filtered$topics)
+max.topics <- max(SVM_results_filtered$topics)
+
+ap <- SVM_results_filtered %>%
+  ggplot(aes(topics, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_continuous(limits= c(min.topics, max.topics), expand = expansion(mult = 0.05)) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(title = "Number of Topics") +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+animate(ap, 100, 10)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_topics.gif"), height = height, width = width)
+
+```
+
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(kernel, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(title = "Kernel") +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_kernel.gif"), height = height, width = width)
+
+
+```
+
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(gamma, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_log10() +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Gamma",
+      x = "gamma (log)"
+    ) +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_gamma.gif"), height = height, width = width)
+
+```
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(nu, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_continuous(limits = c(min(SVM_results_filtered$nu), max(SVM_results_filtered$nu))) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Nu",
+      x = "nu"
+    ) +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_nu.gif"), height = height, width = width)
+
+```
+
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(cost, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_log10() +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Cost",
+      x = "cost (log)"
+    ) +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_cost.gif"), height = height, width = width)
+
+
+```
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(cross, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Cross"
+    ) +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_cross.gif"), height = height, width = width)
+
+```
+
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(type, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Type"
+    ) +
+    theme(
+      legend.position = "right"
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_type.gif"), height = height, width = width)
+
+```
+
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(degree, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Degree"
+      ) +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_degree.gif"), height = height, width = width)
+
+```
+
+
+```{r}
+
+SVM_results_filtered %>%
+  ggplot(aes(split_group, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Which train/test split?"
+      ) +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_split.gif"), height = height, width = width)
+
+```
+
+```{r}
+
+
+SVM_results_filtered %>%
+  ggplot(aes(weight.ratio, F1, color = kernel, shape = type)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_log10(limits = c(min(SVM_results_filtered$weight.ratio), max(SVM_results_filtered$weight.ratio))) +
+    theme_ridges() +
+    scale_color_brewer(palette = "PuOr") +
+    labs(
+      title = "Imbalanced Class Weight Ratio",
+      x = "weight ratio (log)"
+    ) +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    ) +
+    transition_states(iter, transition_length = 2, state_length = 1) +
+    shadow_mark(1, alpha = 1 / max.iter)
+
+anim_save(paste0("../data-raw/results-scores/images/SVM_short_weight_ratio.gif"), height = height, width = width)
+
+```
+

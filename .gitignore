@@ -6,5 +6,5 @@ aRlegislation.Rcheck
 inst/doc
 .old
 */*.old
-data-raw/results
-demo
+data-raw/results-models
+vignettes/*_cache

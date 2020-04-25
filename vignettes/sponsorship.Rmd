@@ -1,13 +1,17 @@
 ---
 title: "Sponsorship"
-output: 
-  rmarkdown::html_vignette:
-    keep_md: TRUE
+output:
+  github_document:
+    html_preview: false
 vignette: >
   %\VignetteIndexEntry{Sponsorship}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+
+This vignette examines the structure of the `sponsorship` tibbles contained within the `legislation` dataset and renders a network graph as an example use case. 
+
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -16,12 +20,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-suppressPackageStartupMessages(library(aRlegislation))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
-suppressPackageStartupMessages(library(tidygraph))
-suppressPackageStartupMessages(library(ggraph))
+```{r setup, message=F, warning=F}
+library(aRlegislation)
+library(dplyr)
+library(tidyr) # needed for nest/unnest operations
+library(tidygraph)
+library(ggraph)
 ```
 
 Sponsorship refers to individual laws that each lawmaker or committee presents to the legislative chamber. Some bills have a single sponsor, while others have many. Bills can be sponsored by lawmakers in one or both chambers, by a committee belonging to neither chamber, or some combination thereof. Since the number of lawmakers/committees that sponsor laws can change, this table is a two-column layout with a unique combination of act and sponsor per row:

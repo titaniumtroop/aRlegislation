@@ -1,46 +1,40 @@
----
-title: "Lawmakers"
-output: 
-  rmarkdown::html_vignette:
-    keep_md: TRUE
-vignette: >
-  %\VignetteIndexEntry{Lawmakers}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
+Lawmakers
+================
 
+This vignette examines the structure of the `lawmakers` tibbles
+contained within the `legislation` dataset and displays the political
+makeup of the Arkansas Legislature over time as an example use case.
 
-
-
-```r
-suppressPackageStartupMessages(library(aRlegislation))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
-suppressPackageStartupMessages(library(ggplot2))
+``` r
+library(aRlegislation)
+library(dplyr)
+library(tidyr) # needed for nest/unnest operations
+library(ggplot2)
 ```
 
-For purposes of this dataset, the term "sponsor" refers to one or more lawmakers or committees that propose an enacted bill during a legislative session. This table contains demographic information about lawmakers, so it excludes committees -- hence the name. Here's what the structure of one of the lawmakers tibbles looks like: 
+For purposes of this dataset, the term “sponsor” refers to one or more
+lawmakers or committees that propose an enacted bill during a
+legislative session. This table contains demographic information about
+lawmakers, so it excludes committees – hence the name. Here’s what the
+structure of one of the lawmakers tibbles looks like:
 
-
-```r
+``` r
 head(legislation$lawmakers[[1]])
 #> # A tibble: 6 x 11
-#>   sponsor sponsor_full_na… chamber party committee seniority district
-#>   <chr>   <chr>            <chr>   <chr> <chr>         <dbl>    <dbl>
-#> 1 Adams   Bob Adams        House   D     TASK FOR…        73       48
-#> 2 Agee    Sarah Agee       House   R     ARKANSAS…        46        9
-#> 3 Allison Jerry Allison    House   D     PUBLIC T…         9       86
-#> 4 Altes   Denny Altes      House   R     PUBLIC H…        66       14
-#> 5 Argue   Jim Argue        Senate  D     ALC/JBC …        13       15
-#> 6 B. Joh… Bob Johnson      Senate  D     AGRICULT…        34       25
-#> # … with 4 more variables: occupation <chr>, church <chr>, veteran <chr>,
-#> #   public_service <chr>
+#>   sponsor   sponsor_full_name chamber party committee                                seniority district occupation                           church        veteran       public_service                       
+#>   <chr>     <chr>             <chr>   <chr> <chr>                                    <chr>        <dbl> <chr>                                <chr>         <chr>         <chr>                                
+#> 1 Adams     Bob Adams         House   D     TASK FORCE ON METHAMPHETAMINE (ACT 1684… 73              48 Grant County Sheriff                 Baptist       <NA>          Grant County Sheriff, House 2001     
+#> 2 Agee      Sarah Agee        House   R     ARKANSAS LEGISLATIVE COUNCIL (ALC)       46               9 Cattle Producer/Residential Develop… Baptist       <NA>          Prairie Grove School District Board …
+#> 3 Allison   Jerry Allison     House   D     PUBLIC TRANSPORTATION- HOUSE             9               86 Owner, Allison Manufactured Homes, … Methodist     AR National … Chairman of the Board AR Manufacture…
+#> 4 Altes     Denny Altes       House   R     PUBLIC HEALTH- HOUSE LABOR & ENVIRONMEN… 66              14 Recycler (paper)                     Baptist       <NA>          Justice of the Peace (Quorum Court);…
+#> 5 Argue     Jim Argue         Senate  D     ALC/JBC APPROVED CLAIMS-SPECIAL CLAIMS … 13              15 Foundation Executive, United Method… United Metho… <NA>          House in 1991, 1993, 1995, Senate 19…
+#> 6 B. Johns… Bob Johnson       Senate  D     AGRICULTURE-SENATE SMALL BUSINESS & ECO… 34              25 <NA>                                 Baptist       <NA>          House in 1995, 1997, 1999, Senate 20…
 ```
 
-As an example, we can look at the political makeup of the lawmakers in each regular-session legislative chamber over time pretty easily:
+As an example, we can look at the political makeup of the lawmakers in
+each regular-session legislative chamber over time pretty easily:
 
-
-```r
+``` r
 # Use party-related colors
 party.colors <- c(
   "R" = "#990000", # dark red = Republicans
@@ -73,6 +67,7 @@ legislation %>%
     theme(legend.position = "none")
 ```
 
-![](lawmakers_files/figure-html/cycle-chamber-party_plot-1.png)<!-- -->
+![](lawmakers_files/figure-gfm/cycle-chamber-party_plot-1.png)<!-- -->
 
-This graph shows a very pronounced switch in the makeup of both chambers of the Arkansas legislature between 2009 and 2017. 
+This graph shows a very pronounced switch in the makeup of both chambers
+of the Arkansas legislature between 2009 and 2017.

@@ -1,0 +1,626 @@
+---
+title: "NN"
+author: "Nathan Chaney"
+date: "4/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = TRUE
+)
+
+# anaconda, anaconda/bin, and anaconda/lib added to .Renviron path, so following line isn't necessary 
+# reticulate::use_condaenv(conda = "/usr/local/anaconda3/bin/conda") # Point reticulate to anaconda installation
+
+# Tensorflow installed using keras::install_keras() to create an environment named "r-reticulate"
+# Uses python 3.6, not 3.7
+reticulate::use_condaenv(condaenv = "r-reticulate", conda = "/usr/local/anaconda3/bin/conda", required = TRUE)
+
+packages <- c("aRlegislation", "tidyverse", "furrr", "parallel", "e1071", "scales", "caret", "ggplot2", "ggridges", "keras", "tensorflow")
+lapply(packages, require, character.only = TRUE)
+rm(packages)
+
+reticulate::use_condaenv(condaenv = "r-reticulate", conda = "/usr/local/anaconda3/bin/conda", required = TRUE)
+
+options( scipen = 10 ) # print full numbers, not scientific notation
+options(future.globals.maxSize = 3*1024*1024^2) # 3GB max, 500MB caused errors
+
+```
+
+
+```{r load topic models and sponsorship matrix}
+
+# Load topic distributions from storage
+dir.files <- list.files("../data-raw/results", "Rdata", full.names = TRUE, ignore.case = TRUE)
+dir.file.info <- file.info(dir.files)
+dir.file.info$name <- dir.files
+
+newest.file <- dir.file.info %>%
+  arrange(desc(mtime)) %>%
+  filter(size > 0 & grepl("model_grid_short", name)) %>%
+  top_n(1, mtime) %>%
+  select(name)
+
+load(newest.file$name)
+rm(dir.file.info, newest.file, dir.files)
+
+lawmaker_models <- load_lawmaker_models(topics = 75:250)
+
+
+# We'll load the model grid and lawmaker_models separately to save space, then join them here
+model_grid <- model_grid %>%
+ left_join(lawmaker_models %>% select(topics, lawmaker_model), by = "topics") %>%
+  rename(model = lawmaker_model)
+
+# > names(model_grid)
+# [1] "topics"        "model"         "split_group"   "train"         "test"          "class.weights"
+
+if(! all(c("topics", "model", "split_group", "train", "test", "class.weights") %in% names(model_grid))) {
+  stop(
+    paste(
+      "Missing information from the model grid. Please provide a dataframe that has the following: ",
+      c("topics", "model", "split_group", "train", "test", "class.weights")
+    )
+  )
+}
+
+```
+
+
+```{r parallel setup, cache=F}
+
+# Keras uses parallelism by default
+# However, we do want to run post-training calculations in parallel
+
+# Some Keras settings can be manipulated to improve CPU usage
+# See ~ 1/3 usage on first rin through many models calculations
+# Perhaps try the approach listed below to manually set parallelism options
+# https://stackoverflow.com/questions/44591138/making-neural-network-training-reproducible-using-rstudios-keras-interface
+
+# ---- Create parallel cluster --------------------- w
+## Single System
+# my.cores <- parallel::detectCores() - 1
+# parallelCluster <- parallel::makeCluster(parallel::detectCores())
+# or
+plan(multiprocess)
+
+## HPC
+# my.cores <- as.numeric(Sys.getenv("PBS_NP")) - 1
+# snow::setDefaultClusterOptions(outfile = "./output/slave.out")
+# parallelCluster <- snow::makeMPIcluster(my.cores, verbose = TRUE)
+
+```
+
+
+```{r serial, eval = F}
+
+# Setting eval = T ensures that tensorflow is loaded
+
+model_no <- sample(1:NROW(model_grid), size = 1)
+
+temp_model <- model_grid$model[[model_no]]
+train <- model_grid$train[[model_no]]
+test <- model_grid$test[[model_no]]
+class.weights <- model_grid$class.weights[[model_no]]
+batch_size <- round(length(train)^0.25)
+learning_rate <- 10^-6
+
+train_x <- as.matrix(temp_model[train, grepl("^V\\d+", names(temp_model))])
+test_x <- as.matrix(temp_model[test, grepl("^V\\d+", names(temp_model))])
+
+train_y <- to_categorical(as.numeric(ifelse(temp_model[train, c("corruption")] == "corrupt", 1, 0)))
+truth <- as.numeric(ifelse(temp_model[test, c("corruption")] == "corrupt", 1, 0))
+test_y <-  to_categorical(truth)
+test_weights <- as.numeric(ifelse(temp_model[test, c("corruption")] == "corrupt", class.weights[1], class.weights[2]))
+
+nn_model <- keras_model_sequential() %>%
+      layer_dense(units = 50, activation = "relu", input_shape = NCOL(train_x)) %>%
+      layer_dense(units = 67, activation = "relu", kernel_initializer = "he_normal") %>%
+      layer_dense(units = 33, activation = "relu", kernel_initializer = "he_normal") %>%
+      layer_dense(units = 11, activation = "relu", kernel_initializer = "he_normal") %>%
+      layer_dense(units = 2, activation = "sigmoid") %>%
+      compile(
+        loss = 'binary_crossentropy',
+        optimizer = call("optimizer_rmsprop", lr = learning_rate),
+        metrics = c('accuracy')
+      )
+
+fit <- nn_model %>%
+  fit(
+    x = train_x,
+    y = train_y,
+    validation_data = list(test_x, test_y, test_weights),
+    epochs = 50,
+    batch_size = batch_size,
+    verbose = T
+  )
+
+# plot(fit)
+
+pred <- nn_model %>% predict_classes(test_x)
+
+# Make the vectors factors so if no predicted values are 1, returns a contingency table anyway
+confusion <- table(pred = factor(pred, levels = c(0,1)), truth = factor(truth, levels = c(0,1)))
+TP <- confusion[2,2]
+FP <- confusion[2,1]
+TN <- confusion[1,1]
+FN <- confusion[1,2]
+
+precision <- TP / (TP + FP)
+recall <- TP / (TP + FN)
+
+F1 <- precision * recall / (precision + recall)
+
+```
+
+
+```{r create grid}
+
+iter = 0
+
+# Can use different numbers of hidden layers by using a for loop to make repeated calls to layer_dense
+grid_size <- NROW(model_grid) * 1
+
+if (grid_size %% NROW(model_grid) != 0) stop(paste0("Grid size must be a multiple of ", NROW(model_grid), ", the number of rows in the model grid."))
+
+layers <- expand_grid(
+  hidden_layers = 1:7,
+  layer_1_neurons = seq.int(from = 50, to = 170, length.out = 5),
+  layer_k_neurons = seq.int(from = 4, to = 16, length.out = 5)
+)
+
+# layer_1_neurons <- 170
+# layer_k_neurons <- 4
+# hidden_layers <- 1
+
+generate_layers <- function(layer_1_neurons, layer_k_neurons, hidden_layers) {
+  round(seq(from = layer_1_neurons, to = layer_k_neurons, length.out = hidden_layers))
+}
+
+layers <- layers %>%
+  mutate(
+    neurons = pmap(., .f = generate_layers)
+  )
+
+
+nn_params <- expand.grid(
+  layers = layers$neurons,
+  loss = c("binary_crossentropy", "categorical_crossentropy"),
+  learning_rate = 10^seq(from = -5, to = 0, length.out = 20),
+  dropout = 10^seq(from = -1.5, to = -0.3, length.out = 20),
+  # regularizer = c("regularizer_l1", "regularizer_l2"),
+  # decay = 10^seq(from = -6, to = -1, length.out = 20),
+  optimizer = c("optimizer_adam", "optimizer_rmsprop", "optimizer_adagrad", "optimizer_adadelta", "optimizer_sgd"),
+  kernel_initializer = c("he_uniform", "he_normal", "glorot_uniform", "glorot_normal"),
+  epochs = seq.int(from = 25, to = 50, length.out = 3),
+  batch_size = seq.int(from = 1, to = 25, length.out = 5),
+  activation = c("sigmoid", "tanh", "relu", "elu")
+) %>%
+  filter(! (grepl("^he", kernel_initializer) & activation %in% c("sigmoid", "tanh"))) %>%
+  filter(! (grepl("^glorot", kernel_initializer) & activation %in% c("relu", "elu"))) %>%
+  as_tibble() %>%
+  sample_n(grid_size)
+
+temp_grid <- tibble()
+for (i in 1:(grid_size / NROW(model_grid))) {
+  temp_grid <- rbind(temp_grid, model_grid)
+}
+
+search_grid <- cbind(nn_params, temp_grid) %>% as_tibble()
+
+rm(temp_grid, nn_params, layers, i, grid_size)
+
+```
+
+
+```{r refine grid}
+
+iter = 8
+
+# Can use different numbers of hidden layers by using a for loop to make repeated calls to layer_dense
+grid_size <- NROW(model_grid) * 1
+
+if (grid_size %% NROW(model_grid) != 0) stop(paste0("Grid size must be a multiple of ", NROW(model_grid), ", the number of rows in the model grid."))
+
+layers <- expand_grid(
+  hidden_layers = 1:7,
+  layer_1_neurons = seq.int(from = 50, to = 170, length.out = 5),
+  layer_k_neurons = seq.int(from = 4, to = 16, length.out = 5)
+)
+
+# layer_1_neurons <- 170
+# layer_k_neurons <- 4
+# hidden_layers <- 1
+
+generate_layers <- function(layer_1_neurons, layer_k_neurons, hidden_layers) {
+  round(seq(from = layer_1_neurons, to = layer_k_neurons, length.out = hidden_layers))
+}
+
+layers <- layers %>%
+  mutate(
+    neurons = pmap(., .f = generate_layers)
+  )
+
+
+nn_params <- expand.grid(
+  layers = layers$neurons,
+  loss = c("categorical_crossentropy"),
+  learning_rate = 10^seq(from = -3.325, to = -2.8, length.out = 20),
+  dropout = 10^seq(from = -1.5, to = -0.9, length.out = 20),
+  # regularizer = c("regularizer_l1", "regularizer_l2"),
+  # decay = 10^seq(from = -6, to = -1, length.out = 20),
+  optimizer = c("optimizer_adam", "optimizer_sgd"),
+  kernel_initializer = c("he_normal"),
+  epochs = seq.int(from = 200, to = 500, length.out = 10),
+  batch_size = seq.int(from = 20, to = 50, length.out = 10),
+  activation = c("relu")
+) %>%
+  # filter(! (grepl("^he", kernel_initializer) & activation %in% c("sigmoid", "tanh"))) %>%
+  # filter(! (grepl("^glorot", kernel_initializer) & activation %in% c("relu", "elu"))) %>%
+  as_tibble() %>%
+  sample_n(grid_size)
+
+temp_grid <- tibble()
+for (i in 1:(grid_size / NROW(model_grid))) {
+  temp_grid <- rbind(temp_grid, model_grid)
+}
+
+compute_class_ratio <- function(x) {
+  names(x) <- NULL
+  x[1] / x[2]
+}
+
+search_grid <- cbind(nn_params, temp_grid) %>% as_tibble() %>%
+  mutate(class.ratio = map(class.weights, compute_class_ratio)) %>%
+  unnest(class.ratio) %>%
+  filter(class.ratio >= 1000 & class.ratio <= 50000)
+
+rm(temp_grid, nn_params, layers, i, grid_size)
+
+```
+
+
+```{r nn calculations parallel}
+
+# > names(search_grid)
+#  [1] "layers"  "loss"   "optimizer"  "epochs"  "batch_size" "activation" "topics"  "split_group" "train"
+# [10] "test"   "class.weights" "model"
+
+model <- search_grid$model[[1]]
+train <- search_grid$train[[1]]
+test <- search_grid$test[[1]]
+class.weights <- search_grid$class.weights[[1]]
+layers <- search_grid$layers[[1]]
+loss <- search_grid$loss[[1]]
+optimizer <- search_grid$optimizer[[1]]
+epochs <- search_grid$epochs[[1]]
+batch_size <- search_grid$batch_size[[1]]
+activation <- search_grid$activation[[1]]
+kernel_initializer <- search_grid$kernel_initializer[[1]]
+learning_rate <- search_grid$learning_rate[[1]]
+dropout <- search_grid$dropout[[1]]
+
+
+compute_nn <- function(model, train, test, class.weights, layers, loss, 
+                       optimizer, epochs, batch_size, activation, 
+                       kernel_initializer, learning_rate,  
+                       dropout, ...) {
+
+  pb$tick()$print()
+ 
+  try({
+  
+    train_x <- as.matrix(model[train, grepl("^V\\d+", names(model))])
+    test_x <- as.matrix(model[test, grepl("^V\\d+", names(model))])
+    
+    train_y <- to_categorical(as.numeric(ifelse(model[train, c("corruption")] == "corrupt", 1, 0)))
+    truth <- as.numeric(ifelse(model[test, c("corruption")] == "corrupt", 1, 0))
+    test_y <-  to_categorical(truth)
+    test_weights <- as.numeric(ifelse(model[test, c("corruption")] == "corrupt", class.weights[1], class.weights[2]))
+    
+    nn_model <- keras_model_sequential() %>%
+      layer_dense(
+        units = layers[1], 
+        activation = activation, 
+        kernel_initializer = kernel_initializer,
+        # kernel_regularizer = call(as.character(regularizer), l = decay), 
+        input_shape = NCOL(train_x)
+      ) %>%
+      layer_dropout(rate = dropout) %>%
+      layer_batch_normalization() 
+    
+    # Dynamically generate hidden layers
+    if (length(layers) > 1) { 
+      for (i in layers[-1]) { # Drop first element, as it was already added in the preceding step
+        nn_model %>%
+          layer_dense(
+            units = i, 
+            activation = activation, 
+            kernel_initializer = kernel_initializer
+            # kernel_regularizer = call(as.character(regularizer), l = decay)
+          ) %>%
+          layer_dropout(rate = dropout) %>%
+          layer_batch_normalization()
+      }
+    }
+
+    nn_model %>%
+      layer_dense(units = 2, activation = "softmax") %>%
+      compile(
+        loss = loss,
+        optimizer = call(as.character(optimizer), lr = learning_rate),
+        metrics = c('accuracy')
+      )
+    
+    fit <- nn_model %>%
+      keras::fit(
+        x = train_x,
+        y = train_y,
+        validation_data = list(test_x, test_y, test_weights),
+        epochs = epochs,
+        batch_size = batch_size,
+        verbose = F
+      )
+    
+    serialize_model(nn_model, include_optimizer = TRUE)
+  })
+}
+
+sample_size <- 75
+pb <- dplyr::progress_estimated(sample_size)
+
+corruption_NN <- search_grid[sample(1:NROW(search_grid), sample_size, replace = FALSE),] %>%
+  mutate(nn_model = pmap(., compute_nn)) %>%
+  as_tibble()
+
+
+```
+
+
+```{r calculate predictions}
+
+predict_nn <- function(nn_model, model, test, ...) {
+
+  pb$tick()$print()
+  try({
+    test_x <- as.matrix(model[test, grepl("^V\\d+", names(model))])
+    fit <- unserialize_model(nn_model, custom_objects = NULL, compile = TRUE)
+    fit %>% predict_classes(test_x)
+  })
+}
+  
+pb <- dplyr::progress_estimated(NROW(corruption_NN))
+
+corruption_NN <- corruption_NN %>%
+  mutate(predict = pmap(., predict_nn)) %>%
+  as_tibble()
+  
+```
+
+
+```{r calculate scores}
+
+nn_scores <- function(predict, model, test, ...) {
+  
+  
+  if (! class(predict) == "try-error") {
+
+    truth <- as.numeric(ifelse(model[test, c("corruption")] == "corrupt", 1, 0))
+  
+    # Make the vectors factors so if no predicted values are 1, returns a contingency table anyway
+    confusion <- table(pred = factor(predict, levels = c(0,1)), truth = factor(truth, levels = c(0,1)))
+    TP <- confusion[2,2]
+    FP <- confusion[2,1]
+    TN <- confusion[1,1]
+    FN <- confusion[1,2]
+    
+    precision <- TP / (TP + FP)
+    recall <- TP / (TP + FN)
+    F1 <- precision * recall / (precision + recall)
+    
+    enframe(c(Precision = precision, Recall = recall, F1 = F1)) %>% 
+      pivot_wider()
+
+  } else {
+    data.frame(list("Precision" = -1, "Recall" = -1, "F1" = -1))
+  }
+}
+
+corruption_NN <- corruption_NN %>%
+  mutate(nn_results = future_pmap(., nn_scores, .progress = TRUE)) %>%
+  unnest(nn_results) %>%
+  as_tibble()
+
+```
+
+
+```{r save corruption_NN, eval = F }
+
+save(
+  corruption_NN,
+  file = paste("../data-raw/results-models/corruption_NN ",
+               gsub(":", "", Sys.time()),
+               ".RData",
+               sep = ""),
+  envir = .GlobalEnv,
+  compress = "bzip2"
+)
+
+```
+
+
+```{r save NN results, eval = T}
+
+# Saving just the result with metrics so we can compare across a range of hyperparameters
+
+NN_results <- corruption_NN %>%
+  select(-nn_model, -predict, -model) %>%
+  as_tibble() %>%
+  mutate(weight.ratio = map(class.weights, function(x) {
+    round(x[[1]] / x[[2]], 3)
+  })) %>%
+  mutate(F1 = as.numeric(ifelse(is.na(F1), 0, F1)))
+
+NN_results$weight.ratio <- unlist(NN_results$weight.ratio)
+
+save(
+  NN_results,
+  file = paste("../data-raw/results-scores/NN_results_short_", iter, " ",
+               gsub(":", "", Sys.time()),
+               ".RData",
+               sep = ""),
+  envir = .GlobalEnv,
+  compress = "bzip2"
+)
+
+```
+
+
+
+```{r plot SVM results, fig.height=6, fig.width = 13}
+
+height <- 3
+width <- 6
+
+NN_results_filtered <- NN_results %>%
+  filter(!is.na(F1) & F1 >=0)
+  # filter(F1 > .1)
+
+NN_results_filtered %>%
+  ggplot(aes(F1)) +
+    theme_ridges() +
+    geom_histogram()
+
+NN_results_filtered %>%
+  ggplot(aes(topics, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    theme(
+      legend.position = "right"
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_topics_", iter, ".png"), height = height, width = width)
+
+NN_results_filtered %>%
+  ggplot(aes(activation, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    theme(
+      legend.position = "right"
+    )
+
+NN_results_filtered %>%
+  ggplot(aes(learning_rate, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_log10() +
+    theme_ridges() +
+    theme(
+      legend.position = "right"
+    )
+
+NN_results_filtered %>%
+  ggplot(aes(kernel_initializer, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    labs(
+      title = "Nu",
+      subtitle = paste0("Iteration ", iter)
+      ) +
+    theme(
+      legend.position = "right"
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_nu_", iter, ".png"), height = height, width = width)
+
+NN_results_filtered %>%
+  ggplot(aes(dropout, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    labs(
+      title = "Dropout Rate",
+      subtitle = paste0("Iteration ", iter)
+      ) +
+    theme(
+      legend.position = "right"
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_cross_", iter, ".png"), height = height, width = width)
+
+NN_results_filtered %>%
+  ggplot(aes(epochs, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    theme(
+      legend.position = "right"
+    )
+
+NN_results_filtered %>%
+  ggplot(aes(split_group, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    labs(
+      title = "Which train/test split?",
+      subtitle = paste0("Iteration ", iter)
+      ) +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_split_", iter, ".png"), height = height, width = width)
+
+NN_results_filtered %>%
+  ggplot(aes(batch_size, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    labs(
+      title = "Batch size",
+      subtitle = paste0("Iteration ", iter)
+      ) +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_btach_size_", iter, ".png"), height = height, width = width)
+
+NN_results_filtered %>%
+  ggplot(aes(optimizer, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_ridges() +
+    labs(
+      title = "Optimizer",
+      subtitle = paste0("Iteration ", iter)
+      ) +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_optimizer_", iter, ".png"), height = height, width = width)
+
+NN_results_filtered %>%
+  ggplot(aes(weight.ratio, F1, color = activation, shape = loss)) +
+    geom_jitter() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_log10() +
+    theme_ridges() +
+    labs(
+      title = "Imbalanced Class Weight Ratio",
+      subtitle = paste0("Iteration ", iter),
+      x = "weight ratio (log)", y = "F1 score") +
+    theme(
+      legend.position = "right",
+      axis.text.x = element_text(angle = 45)
+    )
+ggsave(paste0("../data-raw/results-scores/images/NN_short_weight_ratio_", iter, ".png"), height = height, width = width)
+
+```
+
+

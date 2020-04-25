@@ -1,26 +1,31 @@
 ---
 title: "Lawmakers"
-output: 
-  rmarkdown::html_vignette:
-    keep_md: TRUE
+output:
+  github_document:
+    html_preview: false
 vignette: >
   %\VignetteIndexEntry{Lawmakers}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+
+This vignette examines the structure of the `lawmakers` tibbles contained within the `legislation` dataset and displays the political makeup of the Arkansas Legislature over time as an example use case. 
+
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
+  cache = FALSE,
   collapse = TRUE,
   comment = "#>"
 )
 ```
 
-```{r setup}
-suppressPackageStartupMessages(library(aRlegislation))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(tidyr)) # needed for nest/unnest operations
-suppressPackageStartupMessages(library(ggplot2))
+```{r setup, message=F, warning=F}
+library(aRlegislation)
+library(dplyr)
+library(tidyr) # needed for nest/unnest operations
+library(ggplot2)
 ```
 
 For purposes of this dataset, the term "sponsor" refers to one or more lawmakers or committees that propose an enacted bill during a legislative session. This table contains demographic information about lawmakers, so it excludes committees -- hence the name. Here's what the structure of one of the lawmakers tibbles looks like: 
