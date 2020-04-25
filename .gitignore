@@ -8,3 +8,7 @@ inst/doc
 */*.old
 data-raw/results-models
 vignettes/*_cache
+vignettes/*.html
+vignettes/*.R
+doc
+Meta

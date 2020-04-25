@@ -1,8 +1,7 @@
 ---
 title: "Sponsorship"
 output:
-  github_document:
-    html_preview: false
+  github_document
 vignette: >
   %\VignetteIndexEntry{Sponsorship}
   %\VignetteEngine{knitr::rmarkdown}

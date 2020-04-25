@@ -77,7 +77,7 @@ legislation %>%
     )
 ```
 
-![](sponsorship_files/figure-gfm/sponsorship_plot-1.png)<!-- -->
+![](/Users/nathan/Dropbox/Programming/aRlegislation/vignettes/sponsorship_files/figure-gfm/sponsorship_plot-1.png)<!-- -->
 
 ## Graph Analysis
 
@@ -188,4 +188,4 @@ sponsorship_graph %>%
     theme(legend.position = "none")
 ```
 
-![](sponsorship_files/figure-gfm/sponsorship-graph_plot-1.png)<!-- -->
+![](/Users/nathan/Dropbox/Programming/aRlegislation/vignettes/sponsorship_files/figure-gfm/sponsorship-graph_plot-1.png)<!-- -->
